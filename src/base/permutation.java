@@ -10,11 +10,12 @@ public class permutation {
     }
 
     private static int solve_num(int cnt, int used, int val) {
-        if(cnt == 2) return val;
+        if(cnt == 4) return val;
         int ret = 0;
         for(int i=0; i<N; i++){
             if((used & 1 << i) != 0) continue;
             ret = Math.max(ret, solve_num(cnt+1, used | 1 << i, val * 10 + Nums[i]));
+            System.out.println("ret = " + ret);
         }
         return ret;
     }
