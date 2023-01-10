@@ -1,16 +1,15 @@
 import java.util.*;
 import java.io.*;
 
-public class sds_flash {
+public class sds_flash{
     static final int MAX_N = 100;
-    static int MIN = 123456789;
 
     static int[][] D = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
     static int[][] Graph = new int[MAX_N][MAX_N];
-    static final int INF = 123456789;
-    static int Row, Col, hitCount;
-    static int T;
+    static int Row, Col, HitCount, T;
+
+    static int ret = 123456789;
 
     static class Point{
         int x, y, d;
@@ -20,103 +19,94 @@ public class sds_flash {
             this.d = d;
         }
     }
+
     public static void main(String[] args) throws IOException{
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         T = Integer.parseInt(br.readLine());
         StringBuilder sb = new StringBuilder();
-        for(int i=0; i<T; i++){
+
+        for(int k=0; k<T; k++){
             int[] tmp = stringToIntArray(br.readLine());
             Row = tmp[0];
             Col = tmp[1];
-            hitCount = tmp[2];
-            for(int j=0; j<Row; j++){
+            HitCount = tmp[2];
+            for(int i=0; i<Row; i++){
                 String line = br.readLine();
-                for(int k=0; k<line.length(); k++){
-                    if(line.charAt(k) == '#'){
-                        Graph[j][k] = 2;
+                for(int j=0; j<line.length(); j++){
+                    if(line.charAt(j) == '#'){
+                        Graph[i][j] = 1; // 벽
                     }
                 }
             }
-            for(int j=0; j<hitCount; j++){
+            for(int i=0; i<HitCount; i++){
                 tmp = stringToIntArray(br.readLine());
-                int fireR = tmp[0]-1;
-                int fireC = tmp[1]-1;
-                Graph[fireR][fireC] = 1;
+                Graph[tmp[0]-1][tmp[1]-1] = 2; // 불
             }
-            sb.append("#"+(i+1)).append(" ").append(solve()).append("\n");
-            for(int j=0; j<Row; j++){
-                for(int k=0; k<Col; k++){
-                    System.out.print(Graph[j][k] + " ");
-                }
-                System.out.println();
-            }
+            sb = sb.append("#" + (k + 1) + " ").append(solve()).append('\n');
             clearGraph();
         }
         sb.deleteCharAt(sb.length()-1);
         System.out.print(sb);
+
+    }
+
+    private static void clearGraph() {
+        for(int i=0; i<Row; i++){
+            for(int j=0; j<Col; j++){
+                Graph[i][j] = 0;
+            }
+        }
+        ret = 123456789;
     }
 
     private static int solve() {
-        int ret = INF;
-        int flag = 0;
         for(int i=0; i<Row; i++){
             for(int j=0; j<Col; j++){
-                if(Graph[i][j] != 2){
-                    int bfs = bfs(i, j);
-                    if(bfs != -1){
-                        ret = Math.min(ret, bfs);
-                        if(flag == 0) {
-                            MIN = ret;
-                            flag++;
-                        }
-                    }
+                if(Graph[i][j] != 1){
+                    int dis = bfs(i,j);
+                    if(dis == -1) return -1;
+                    ret = Math.min(ret, dis);
                 }
             }
         }
-        if(ret == INF) return -1;
         return ret;
     }
 
     private static int bfs(int row, int col) {
         boolean[][] visited = new boolean[MAX_N][MAX_N];
         LinkedList<Point> myqueue = new LinkedList<>();
+        int hit = 0;
 
         visited[row][col] = true;
-
-        int hit = 0;
 
         myqueue.add(new Point(row, col, 0));
 
         while(!myqueue.isEmpty()){
             Point curr = myqueue.poll();
-            if(Graph[curr.x][curr.y] == 1) hit++;
-            if(hit == hitCount) return curr.d;
-
-            if(curr.d > MIN) return -1;
+            if(Graph[curr.x][curr.y] == 2) hit++;
+            if(hit == HitCount) return curr.d;
+            if(curr.d > ret) return curr.d;
 
             for(int i=0; i<4; i++){
-                int nRow = D[i][0] + curr.x;
-                int nCol = D[i][1] + curr.y;
-                if(nRow < 0 || nRow > Row -1 || nCol < 0 || nCol > Col-1) continue;
+                int nRow = curr.x + D[i][0];
+                int nCol = curr.y + D[i][1];
+                if(nRow < 0 || nRow > Row-1 || nCol < 0 || nCol > Col-1) continue;
                 if(visited[nRow][nCol]) continue;
-                if(Graph[nRow][nCol] == 2) continue;
+                if(Graph[nRow][nCol] == 1) continue;
                 visited[nRow][nCol] = true;
-                myqueue.add(new Point(nRow, nCol, curr.d+1));
+                myqueue.add(new Point(nRow, nCol, curr.d + 1));
             }
         }
 
         return -1;
     }
-    private static void clearGraph(){
-        for(int i=0; i<100; i++){
-            for(int j=0; j<100; j++){
-                Graph[i][j] = 0;
-            }
-        }
-        MIN = 123456789;
 
-    }
     static int[] stringToIntArray(String line){
-        return Arrays.stream(line.split(" ")).mapToInt(Integer::parseInt).toArray();
+        StringTokenizer st = new StringTokenizer(line);
+        int[] ret = new int[st.countTokens()];
+        for(int i=0; st.hasMoreTokens(); i++){
+            ret[i] = Integer.parseInt(st.nextToken());
+        }
+        return ret;
     }
 }
